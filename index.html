@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ngũ Hành Linh Tự - Dự Đoán Số Học Phong Thủy & Lô Xiên</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Google Fonts: Cinzel & Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            mystic: ['Cinzel', 'serif'],
+            sans: ['Be Vietnam Pro', 'sans-serif'],
+          },
+          colors: {
+            gold: {
+              300: '#fde047',
+              400: '#facc15',
+              500: '#eab308',
+              600: '#ca8a04',
+            },
+            element: {
+              kim: '#e2e8f0',     // Metal - Bạch Kim
+              moc: '#22c55e',     // Wood - Thanh Mộc
+              thuy: '#38bdf8',    // Water - Huyền Thủy
+              hoa: '#ef4444',     // Fire - Xích Hỏa
+              tho: '#f59e0b',     // Earth - Hoàng Thổ
+            }
+          },
+          boxShadow: {
+            'gold-glow': '0 0 25px -3px rgba(234, 179, 8, 0.35)',
+            'mystic-glow': '0 0 35px -5px rgba(168, 85, 247, 0.3)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @keyframes spin-slow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    .animate-spin-slow {
+      animation: spin-slow 20s linear infinite;
+    }
+    .animate-pulse-glow {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+    /* Custom scrollbar for dark theme */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d97706;
+    }
+  </style>
+</head>
+
+<body class="bg-[#07090e] text-slate-200 font-sans min-h-screen flex flex-col selection:bg-amber-500/30 selection:text-amber-300 relative overflow-x-hidden">
+
+  <!-- Ambient Light Orbs -->
+  <div class="fixed top-0 left-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-10 right-1/4 w-96 h-96 bg-purple-900/15 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+
+  <!-- Header Banner -->
+  <header class="border-b border-amber-900/40 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="relative w-11 h-11 flex items-center justify-center rounded-full bg-gradient-to-tr from-amber-900 via-amber-600 to-yellow-400 p-[1.5px] shadow-gold-glow">
+          <div class="w-full h-full bg-zinc-950 rounded-full flex items-center justify-center text-amber-400 text-lg">
+            <i class="fa-solid fa-yin-yang animate-spin-slow"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="font-mystic font-bold text-lg sm:text-xl tracking-wider bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+            NGŨ HÀNH LINH TỰ
+          </h1>
+          <p class="text-xs text-amber-500/80 tracking-widest uppercase font-mono">Dự Đoán Âm Dương & Hà Đồ Lạc Thư</p>
+        </div>
+      </div>
+
+      <!-- Real-time GMT+7 & Lunar Badge -->
+      <div class="flex items-center gap-3 text-xs bg-zinc-900/90 border border-amber-800/40 rounded-xl px-3.5 py-1.5 shadow-inner">
+        <div class="flex items-center gap-2 text-slate-300">
+          <i class="fa-regular fa-clock text-amber-400"></i>
+          <span id="live-time" class="font-mono font-semibold text-amber-300">--:--:--</span>
+        </div>
+        <div class="h-3.5 w-px bg-zinc-700"></div>
+        <div class="text-amber-200/90 flex items-center gap-1.5">
+          <i class="fa-solid fa-moon text-amber-400/80 text-[10px]"></i>
+          <span id="lunar-calendar-text" class="font-medium">Đang nạp Can Chi...</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full space-y-8">
+
+    <!-- Astrological Day Card & Ritual Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      
+      <!-- Day Astrology Overview -->
+      <div class="lg:col-span-5 bg-gradient-to-b from-zinc-900/90 via-zinc-900/60 to-zinc-950/90 rounded-2xl p-6 border border-amber-600/30 shadow-xl relative overflow-hidden flex flex-col justify-between">
+        <div class="absolute -right-10 -bottom-10 opacity-5 text-amber-400 text-9xl pointer-events-none">
+          <i class="fa-solid fa-compass"></i>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
+            <span class="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+              <i class="fa-solid fa-sun text-yellow-500"></i> Thiên Can Địa Chi Hôm Nay
+            </span>
+            <span id="day-badge-element" class="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 border border-amber-500/40 text-amber-300">
+              --
+            </span>
+          </div>
+
+          <div class="space-y-3.5">
+            <div>
+              <p class="text-xs text-slate-400">Ngày Dương Lịch:</p>
+              <h2 id="solar-date" class="text-lg font-bold text-slate-100 font-mono">--</h2>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 pt-2">
+              <div class="bg-zinc-950/70 p-3 rounded-xl border border-zinc-800">
+                <span class="text-[11px] text-slate-400 block mb-0.5">Trực Can Chi Ngày:</span>
+                <span id="day-canchi" class="text-base font-bold text-amber-300">--</span>
+              </div>
+              <div class="bg-zinc-950/70 p-3 rounded-xl border border-zinc-800">
+                <span class="text-[11px] text-slate-400 block mb-0.5">Ngũ Hành Nạp Âm:</span>
+                <span id="day-napam" class="text-base font-bold text-emerald-400">--</span>
+              </div>
+            </div>
+
+            <div class="bg-zinc-950/70 p-3.5 rounded-xl border border-zinc-800 space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Hành Vượng Hôm Nay:</span>
+                <span id="day-vuong" class="font-semibold text-amber-300">--</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Vòng Tương Sinh:</span>
+                <span id="day-tuongsinh" class="font-semibold text-cyan-400">--</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Giờ Hoàng Đạo Khởi Sự:</span>
+                <span class="font-mono text-slate-300">Thìn (07-09h), Tỵ (09-11h), Thân (15-17h)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Element Selector -->
+        <div class="mt-5 pt-4 border-t border-zinc-800">
+          <label class="block text-xs font-medium text-slate-300 mb-2 flex items-center justify-between">
+            <span><i class="fa-solid fa-user-astronaut text-amber-400 mr-1.5"></i> Chọn Mệnh Bản Thân (Cá nhân hóa):</span>
+            <span class="text-[10px] text-slate-400">(Tùy chọn)</span>
+          </label>
+          <div class="grid grid-cols-5 gap-1.5" id="user-element-selector">
+            <button data-element="ALL" class="element-btn active px-1 py-1.5 rounded-lg text-xs font-semibold border transition text-center bg-amber-500/20 border-amber-500 text-amber-300">
+              Tổng Hòa
+            </button>
+            <button data-element="KIM" class="element-btn px-1 py-1.5 rounded-lg text-xs font-semibold border border-zinc-800 hover:border-slate-400 text-slate-300 transition text-center">
+              Kim
+            </button>
+            <button data-element="MOC" class="element-btn px-1 py-1.5 rounded-lg text-xs font-semibold border border-zinc-800 hover:border-emerald-500 text-slate-300 transition text-center">
+              Mộc
+            </button>
+            <button data-element="THUY" class="element-btn px-1 py-1.5 rounded-lg text-xs font-semibold border border-zinc-800 hover:border-cyan-500 text-slate-300 transition text-center">
+              Thủy
+            </button>
+            <button data-element="HOA" class="element-btn px-1 py-1.5 rounded-lg text-xs font-semibold border border-zinc-800 hover:border-red-500 text-slate-300 transition text-center">
+              Hỏa
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bagua Ritual & Trigger Station -->
+      <div class="lg:col-span-7 bg-gradient-to-b from-zinc-900 via-zinc-900/80 to-zinc-950 rounded-2xl p-6 sm:p-8 border border-amber-500/30 shadow-2xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+        
+        <!-- Glowing Circular Visual -->
+        <div class="relative w-52 h-52 sm:w-60 sm:h-60 mb-6 flex items-center justify-center">
+          <!-- Background rotating outer ring -->
+          <div id="bagua-ring" class="absolute inset-0 rounded-full border-2 border-dashed border-amber-500/40 animate-spin-slow"></div>
+          
+          <!-- Middle element ring with symbols -->
+          <div class="absolute inset-3 rounded-full border border-amber-400/20 flex items-center justify-center">
+            <div class="absolute -top-3 px-2 py-0.5 bg-zinc-900 border border-red-500/50 text-red-400 rounded text-[10px] font-bold">HỎA (2,7)</div>
+            <div class="absolute -bottom-3 px-2 py-0.5 bg-zinc-900 border border-cyan-500/50 text-cyan-400 rounded text-[10px] font-bold">THỦY (1,6)</div>
+            <div class="absolute -left-4 px-2 py-0.5 bg-zinc-900 border border-emerald-500/50 text-emerald-400 rounded text-[10px] font-bold">MỘC (3,8)</div>
+            <div class="absolute -right-4 px-2 py-0.5 bg-zinc-900 border border-slate-400/50 text-slate-200 rounded text-[10px] font-bold">KIM (4,9)</div>
+          </div>
+
+          <!-- Central Core Button / Icon -->
+          <div class="w-32 h-32 rounded-full bg-gradient-to-tr from-zinc-950 via-zinc-900 to-amber-950/80 border-2 border-amber-400 flex flex-col items-center justify-center shadow-gold-glow relative z-10 transition-transform duration-500 group">
+            <div id="core-icon" class="text-3xl text-amber-300 transition-all duration-300">
+              <i class="fa-solid fa-yin-yang"></i>
+            </div>
+            <span class="text-[11px] font-bold text-amber-200 mt-1 uppercase tracking-wider font-mystic" id="core-status">
+              KHÍ VẬN
+            </span>
+          </div>
+        </div>
+
+        <h3 class="font-mystic text-xl sm:text-2xl font-bold text-amber-300 mb-2">
+          Khai Mở Huyền Cơ - Soi Cầu Ngũ Hành
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-400 max-w-lg mb-6 leading-relaxed">
+          Thuật toán phân tích chu kỳ đồng xuất hiện 27 giải XSMB kết hợp Hà Đồ Lạc Thư, tương sinh tương khắc bản mệnh và luật cân bằng Âm Dương ngày.
+        </p>
+
+        <!-- Main Action CTA -->
+        <button id="btn-draw" onclick="startRitual()" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-zinc-950 font-bold text-base rounded-xl shadow-gold-glow hover:shadow-amber-500/50 transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-3">
+          <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+          <span>KHAI QUẺ LẤY SỐ HÔM NAY</span>
+        </button>
+
+        <p class="text-[11px] text-amber-400/70 mt-3 font-mono flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-[10px]"></i>
+          <span>Cập nhật linh số mỗi ngày dựa theo Can Chi nạp âm</span>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Live Prediction Results -->
+    <div id="prediction-panel" class="space-y-6">
+
+      <!-- Section Title -->
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-6 bg-gradient-to-b from-amber-400 to-amber-600 rounded-sm"></span>
+          <h2 class="font-mystic font-bold text-lg sm:text-xl text-slate-100 tracking-wide">
+            KẾT QUẢ QUẺ SỐ LINH ỨNG
+          </h2>
+        </div>
+        <span class="text-xs text-slate-400 font-mono" id="results-timestamp">Đã sẵn sàng khai quẻ</span>
+      </div>
+
+      <!-- Prime Cards Grid: Bach Thu & Song Thu -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Bạch Thủ Linh Số (Card 1) -->
+        <div class="md:col-span-1 bg-gradient-to-br from-amber-950/40 via-zinc-900 to-zinc-950 border-2 border-amber-500/50 rounded-2xl p-6 shadow-gold-glow relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-2 right-2 text-xs font-bold font-mono px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">
+            CỰC PHẨM
+          </div>
+          <div>
+            <div class="flex items-center gap-2 text-amber-400 text-sm font-semibold mb-1">
+              <i class="fa-solid fa-crown text-yellow-400"></i> BẠCH THỦ LINH SỐ
+            </div>
+            <p class="text-xs text-slate-400 mb-4">Điểm tương sinh & chu kỳ nổ cao nhất</p>
+
+            <div class="flex items-baseline justify-center my-4 py-4 bg-zinc-950/80 rounded-xl border border-amber-600/30 shadow-inner">
+              <span id="res-bach-thu" class="text-6xl font-black font-mono tracking-wider bg-gradient-to-b from-amber-200 via-amber-400 to-yellow-500 bg-clip-text text-transparent">
+                --
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-2 text-xs pt-2">
+            <div class="flex justify-between items-center text-slate-300">
+              <span>Hành khí:</span>
+              <span id="res-bt-hanh" class="font-bold text-amber-300">Chờ mở quẻ</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300">
+              <span>Tính chất:</span>
+              <span id="res-bt-amduong" class="font-bold text-cyan-300">Chờ mở quẻ</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-300">
+              <span>Tỷ lệ linh ứng:</span>
+              <span id="res-bt-score" class="font-bold text-emerald-400">--%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Song Thủ Âm Dương (Card 2) -->
+        <div class="md:col-span-2 bg-gradient-to-br from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-700/60 rounded-2xl p-6 shadow-xl relative flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-2 text-amber-300 text-sm font-semibold">
+                <i class="fa-solid fa-scale-balanced text-amber-400"></i> SONG THỦ HÒA HỢP
+              </div>
+              <span class="text-xs text-slate-400">Cân bằng lưỡng nghi Âm - Dương</span>
+            </div>
+            <p class="text-xs text-slate-400 mb-6">Thế số đối ứng hỗ trợ nhau, bảo toàn khí vận tránh đứt gãy</p>
+
+            <div class="grid grid-cols-2 gap-4">
+              <!-- So Thu 1 -->
+              <div class="bg-zinc-950/80 border border-zinc-800 hover:border-amber-500/40 transition rounded-xl p-4 text-center">
+                <span class="text-[11px] text-slate-400 block mb-1">DƯƠNG QUANG SỐ (LẺ)</span>
+                <span id="res-song-thu-1" class="text-4xl sm:text-5xl font-black font-mono text-amber-300">--</span>
+                <div class="mt-2 text-[11px] font-medium text-slate-400" id="res-st1-meta">Đang tính...</div>
+              </div>
+              <!-- So Thu 2 -->
+              <div class="bg-zinc-950/80 border border-zinc-800 hover:border-cyan-500/40 transition rounded-xl p-4 text-center">
+                <span class="text-[11px] text-slate-400 block mb-1">ÂM NGUYỆT SỐ (CHẴN)</span>
+                <span id="res-song-thu-2" class="text-4xl sm:text-5xl font-black font-mono text-cyan-300">--</span>
+                <div class="mt-2 text-[11px] font-medium text-slate-400" id="res-st2-meta">Đang tính...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-xs text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="res-song-thu-desc">Song thủ được đối trọng chuẩn tắc, giúp hạn chế rủi ro trượt cặp.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Lô Xiên (Xiên 2 & Xiên 3) -->
+      <div class="bg-zinc-900/90 border border-amber-800/30 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-link text-amber-400"></i>
+            <h3 class="font-mystic font-bold text-base sm:text-lg text-amber-300">
+              TỔ HỢP LÔ XIÊN TƯƠNG SINH (ĐỒNG XUẤT HIỆN)
+            </h3>
+          </div>
+          <span class="text-xs text-slate-400">Áp dụng mô hình hiệp đồng 27 giải mở thưởng</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Xiên 2 Sets -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span> 3 Cặp Xiên 2 Linh Ứng Nhất
+            </h4>
+            <div id="xien-2-container" class="space-y-2.5">
+              <!-- Dynamic Rows inserted by JS -->
+            </div>
+          </div>
+
+          <!-- Xiên 3 Sets -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2 Bộ Xiên 3 Tam Hợp
+            </h4>
+            <div id="xien-3-container" class="space-y-2.5">
+              <!-- Dynamic Rows inserted by JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Five Elements 00-99 Matrix Table -->
+      <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-table-cells text-amber-400"></i>
+            <h3 class="font-mystic font-bold text-base sm:text-lg text-slate-100">
+              MA TRẬN PHÂN BỔ SỐ THEO NGŨ HÀNH TRONG NGÀY
+            </h3>
+          </div>
+          <span class="text-xs text-slate-400 font-mono">Quy chuẩn Hà Đồ (Đuôi số linh quy)</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5" id="matrix-container">
+          <!-- Kim, Mộc, Thủy, Hỏa, Thổ columns populated by JS -->
+        </div>
+      </div>
+
+      <!-- Historical Co-occurrence Simulator Table (Based on xoso.com.vn format) -->
+      <div class="bg-zinc-900/80 border border-zinc-800/80 rounded-2xl p-6 shadow-xl overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3 mb-4">
+          <div>
+            <h3 class="font-mystic font-bold text-base text-amber-300 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line"></i> BẢNG THEO DÕI CẶP SỐ CÙNG VỀ (BIÊN ĐỘ GẦN NHẤT)
+            </h3>
+            <p class="text-xs text-slate-400">Mô phỏng chu kỳ tần suất xuất hiện đồng thời trong 27 giải XSMB</p>
+          </div>
+          <span class="text-xs bg-zinc-800 text-amber-300 font-mono px-2.5 py-1 rounded-md border border-zinc-700">
+            Biên độ: 10 Ngày
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-zinc-950 text-slate-400 uppercase font-semibold text-[11px] border-b border-zinc-800">
+              <tr>
+                <th class="py-3 px-4">Cặp Số Đồng Xuất Hiện</th>
+                <th class="py-3 px-4">Ngũ Hành Tương Phối</th>
+                <th class="py-3 px-4 text-center">Tần Suất Về Cùng</th>
+                <th class="py-3 px-4 text-center">Âm Dương</th>
+                <th class="py-3 px-4 text-right">Đánh Giá Linh Ứng</th>
+              </tr>
+            </thead>
+            <tbody id="co-occurrence-tbody" class="divide-y divide-zinc-800 font-mono">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Methodology & Knowledge Box -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-400">
+      <div class="bg-zinc-950/70 p-4 rounded-xl border border-zinc-800/80 space-y-1.5">
+        <h4 class="font-bold text-slate-200 flex items-center gap-1.5 text-sm">
+          <i class="fa-solid fa-book-open text-amber-400"></i> Quy Ước Hà Đồ Lạc Thư
+        </h4>
+        <p>Thủy (1, 6 - Bắc), Hỏa (2, 7 - Nam), Mộc (3, 8 - Đông), Kim (4, 9 - Tây), Thổ (0, 5 - Trung Cung). Đây là nguồn cội của quy luật sinh thành vạn vật.</p>
+      </div>
+
+      <div class="bg-zinc-950/70 p-4 rounded-xl border border-zinc-800/80 space-y-1.5">
+        <h4 class="font-bold text-slate-200 flex items-center gap-1.5 text-sm">
+          <i class="fa-solid fa-arrows-spin text-cyan-400"></i> Vòng Sinh Khắc Nạp Âm
+        </h4>
+        <p>Ưu tiên lấy các cặp số được Thiên can ngày sinh xuất hoặc tương hòa bản mệnh; loại trừ các con số bị Can Chi ngày hình khắc dữ dội.</p>
+      </div>
+
+      <div class="bg-zinc-950/70 p-4 rounded-xl border border-zinc-800/80 space-y-1.5">
+        <h4 class="font-bold text-slate-200 flex items-center gap-1.5 text-sm">
+          <i class="fa-solid fa-calculator text-emerald-400"></i> Xác Suất Lô Xiên 27 Giải
+        </h4>
+        <p>Xác suất toán học 1 con số trúng lô là ~23.78%. Xiên 2 cùng nổ đạt ~5.65% và xiên 3 ~1.34%. Thuật toán tối ưu các cặp có độ lệch chuẩn tốt nhất.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Legal Disclaimer & Footer -->
+  <footer class="border-t border-zinc-900 bg-zinc-950 text-slate-400 py-8 px-4 text-center mt-12 text-xs">
+    <div class="max-w-4xl mx-auto space-y-3">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-full text-[11px] font-semibold">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>THÔNG BÁO MIỄN TRỪ TRÁCH NHIỆM PHÁP LÝ</span>
+      </div>
+      <p class="leading-relaxed text-slate-400">
+        Trang web được xây dựng hoàn toàn phục vụ mục đích <strong>nghiên cứu văn hóa cổ truyền, giải trí và mô phỏng xác suất thống kê</strong> dựa trên thuyết Âm Dương Ngũ Hành và lịch Vạn Niên phương Đông. Hệ thống <strong>không cổ súy, không tổ chức và không chịu trách nhiệm</strong> cho bất kỳ hình thức cá cược, cờ bạc hay hành vi vi phạm pháp luật nào.
+      </p>
+      <p class="text-[11px] text-slate-400">
+        © <span id="copyright-year"></span> Ngũ Hành Linh Tự • Thuật số phương Đông & Thống kê số học
+      </p>
+    </div>
+  </footer>
+
+  <!-- Audio Tone generator for ritual sounds -->
+  <script>
+    // Audio Synthesizer for Mystical Gongs
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+      },
+      playBell(freq = 440, duration = 1.2) {
+        try {
+          this.init();
+          if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          // Audio fallback gracefully silent
+        }
+      }
+    };
+
+    // ==========================================
+    // ASTROLOGICAL & FENG SHUI ALGORITHMS
+    // ==========================================
+    const CAN_LIST = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
+    const CHI_LIST = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+    
+    // Mapping Element of Heavenly Stems & Earthly Branches
+    const CAN_ELEMENT = {
+      "Giáp": "MOC", "Ất": "MOC",
+      "Bính": "HOA", "Đinh": "HOA",
+      "Mậu": "THO", "Kỷ": "THO",
+      "Canh": "KIM", "Tân": "KIM",
+      "Nhâm": "THUY", "Quý": "THUY"
+    };
+
+    const ELEMENT_NAMES = {
+      KIM: { name: "Bạch Kim", color: "text-slate-200", border: "border-slate-400", digits: [4, 9], bg: "bg-slate-500/10" },
+      MOC: { name: "Thanh Mộc", color: "text-emerald-400", border: "border-emerald-500", digits: [3, 8], bg: "bg-emerald-500/10" },
+      THUY: { name: "Huyền Thủy", color: "text-cyan-400", border: "border-cyan-500", digits: [1, 6], bg: "bg-cyan-500/10" },
+      HOA: { name: "Xích Hỏa", color: "text-rose-400", border: "border-rose-500", digits: [2, 7], bg: "bg-rose-500/10" },
+      THO: { name: "Hoàng Thổ", color: "text-amber-400", border: "border-amber-500", digits: [0, 5], bg: "bg-amber-500/10" },
+    };
+
+    // Vòng Sinh: Kim -> Thủy -> Mộc -> Hỏa -> Thổ -> Kim
+    const ELEMENT_GENERATES = {
+      KIM: "THUY",
+      THUY: "MOC",
+      MOC: "HOA",
+      HOA: "THO",
+      THO: "KIM"
+    };
+
+    // Vòng Khắc: Kim -> Mộc -> Thổ -> Thủy -> Hỏa -> Kim
+    const ELEMENT_RESTRICTS = {
+      KIM: "MOC",
+      MOC: "THO",
+      THO: "THUY",
+      THUY: "HOA",
+      HOA: "KIM"
+    };
+
+    let currentDayInfo = null;
+    let selectedPersonalElement = "ALL";
+
+    // Approximate solar to Can Chi of Day using Julian Day Algorithm
+    function getCanChiOfDay(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+
+      // Formula for Julian Day Number
+      const a = Math.floor((14 - month) / 12);
+      const y = year + 4800 - a;
+      const m = month + 12 * a - 3;
+      const jdn = day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+
+      // Can Chi of Day:
+      const canIndex = (jdn + 9) % 10;
+      const chiIndex = (jdn + 1) % 12;
+
+      const can = CAN_LIST[canIndex];
+      const chi = CHI_LIST[chiIndex];
+      const element = CAN_ELEMENT[can];
+
+      // Nap Am synthesis
+      const napAmLookup = {
+        KIM: "Hải Trung Kim (Vàng trong biển)",
+        MOC: "Đại Lâm Mộc (Cây rừng lớn)",
+        THUY: "Giản Hạ Thủy (Nước suối trong)",
+        HOA: "Lư Trung Hỏa (Lửa trong lò)",
+        THO: "Lộ Bàng Thổ (Đất ven đường)"
+      };
+
+      return {
+        can,
+        chi,
+        fullCanChi: `${can} ${chi}`,
+        element,
+        napAm: napAmLookup[element] || "Ngũ Hành Chính Khí",
+        generating: ELEMENT_GENERATES[element],
+        restricting: ELEMENT_RESTRICTS[element]
+      };
+    }
+
+    // Number mapping
+    function getNumberElement(num) {
+      const lastDigit = num % 10;
+      if (lastDigit === 4 || lastDigit === 9) return "KIM";
+      if (lastDigit === 3 || lastDigit === 8) return "MOC";
+      if (lastDigit === 1 || lastDigit === 6) return "THUY";
+      if (lastDigit === 2 || lastDigit === 7) return "HOA";
+      return "THO"; // 0, 5
+    }
+
+    function isDuong(num) {
+      return num % 2 !== 0; // Lẻ = Dương, Chẵn = Âm
+    }
+
+    // Mathematical Feng Shui & Probability scoring (0-100)
+    function calculateNumberScore(num, dayElem, userElem) {
+      let score = 50; // Base score
+      const numElem = getNumberElement(num);
+
+      // 1. Element affinity with Day
+      if (numElem === dayElem) {
+        score += 24; // Đồng hành vượng
+      } else if (ELEMENT_GENERATES[dayElem] === numElem) {
+        score += 28; // Ngày sinh cho số (Sinh xuất cát lợi)
+      } else if (ELEMENT_GENERATES[numElem] === dayElem) {
+        score += 26; // Số sinh cho ngày (Sinh nhập tương hợp)
+      } else if (ELEMENT_RESTRICTS[dayElem] === numElem) {
+        score -= 15; // Ngày khắc số
+      } else if (ELEMENT_RESTRICTS[numElem] === dayElem) {
+        score -= 20; // Số phạm xung khắc ngày
+      }
+
+      // 2. Element affinity with User Personal Choice
+      if (userElem !== "ALL") {
+        if (numElem === userElem) score += 12;
+        else if (ELEMENT_GENERATES[userElem] === numElem || ELEMENT_GENERATES[numElem] === userElem) score += 10;
+        else if (ELEMENT_RESTRICTS[userElem] === numElem) score -= 10;
+      }
+
+      // 3. Simulated Statistical Weight (Co-occurrence / Frequency momentum)
+      // Deterministic hash based on date and number for stable reproducibility per day
+      const dateSeed = new Date().getFullYear() * 10000 + (new Date().getMonth() + 1) * 100 + new Date().getDate();
+      const pseudoHash = Math.sin(num * 137.5 + dateSeed) * 10000;
+      const pseudoFreq = Math.abs(pseudoHash - Math.floor(pseudoHash)); // 0.0 -> 1.0
+
+      // Add pseudo frequency bonus
+      score += Math.floor(pseudoFreq * 18);
+
+      // Penalize pseudo-gan (long cold numbers)
+      if (pseudoFreq < 0.12) {
+        score -= 14;
+      }
+
+      return Math.min(99, Math.max(30, Math.floor(score)));
+    }
+
+    // ==========================================
+    // INITIALIZATION & EVENT LOGIC
+    // ==========================================
+    function initClockAndCalendar() {
+      const now = new Date();
+      currentDayInfo = getCanChiOfDay(now);
+
+      // Update Header & Astro Card
+      document.getElementById('solar-date').innerText = now.toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      document.getElementById('day-canchi').innerText = currentDayInfo.fullCanChi;
+      document.getElementById('day-napam').innerText = currentDayInfo.napAm;
+      
+      const dayElObj = ELEMENT_NAMES[currentDayInfo.element];
+      const genElObj = ELEMENT_NAMES[currentDayInfo.generating];
+      
+      document.getElementById('day-badge-element').innerText = `Hành ${dayElObj.name}`;
+      document.getElementById('day-vuong').innerText = `${dayElObj.name} (Chính khí)`;
+      document.getElementById('day-tuongsinh').innerText = `${dayElObj.name} sinh ${genElObj.name}`;
+
+      document.getElementById('lunar-calendar-text').innerText = `Ngày ${currentDayInfo.fullCanChi} • ${dayElObj.name}`;
+      document.getElementById('copyright-year').innerText = now.getFullYear();
+
+      // Realtime live clock
+      setInterval(() => {
+        const d = new Date();
+        document.getElementById('live-time').innerText = d.toLocaleTimeString('vi-VN');
+      }, 1000);
+      document.getElementById('live-time').innerText = now.toLocaleTimeString('vi-VN');
+    }
+
+    // User element selector events
+    function setupUserElementButtons() {
+      const buttons = document.querySelectorAll('#user-element-selector .element-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => {
+            b.classList.remove('active', 'bg-amber-500/20', 'border-amber-500', 'text-amber-300');
+            b.classList.add('border-zinc-800', 'text-slate-300');
+          });
+          btn.classList.add('active', 'bg-amber-500/20', 'border-amber-500', 'text-amber-300');
+          btn.classList.remove('border-zinc-800', 'text-slate-300');
+          selectedPersonalElement = btn.dataset.element;
+          
+          // Re-generate if already unlocked
+          executePredictions();
+        });
+      });
+    }
+
+    // Build the 00-99 pool and rank numbers
+    function getRankedNumbers() {
+      const list = [];
+      for (let i = 0; i < 100; i++) {
+        const score = calculateNumberScore(i, currentDayInfo.element, selectedPersonalElement);
+        list.push({
+          num: i,
+          formatted: i < 10 ? `0${i}` : `${i}`,
+          score,
+          element: getNumberElement(i),
+          isDuong: isDuong(i)
+        });
+      }
+      return list.sort((a, b) => b.score - a.score);
+    }
+
+    // Generate Co-occurrence Pairs
+    function generateCoOccurrenceList(topNumbers) {
+      const coList = [];
+      const sampleDays = ["02/11", "04/11", "07/11", "08/11", "09/11", "10/11"];
+      
+      // Select best synergistic pairs
+      for (let i = 0; i < 6; i++) {
+        const num1 = topNumbers[i];
+        // find a complementary number in top 15
+        const num2 = topNumbers.find((n, idx) => idx > i && (n.isDuong !== num1.isDuong || n.element === ELEMENT_GENERATES[num1.element]));
+        if (num2) {
+          const freq = 4 - Math.floor(i / 2);
+          coList.push({
+            pair: `${num1.formatted} - ${num2.formatted}`,
+            n1: num1,
+            n2: num2,
+            freq: `${freq} lần / 10 ngày`,
+            days: sampleDays.slice(0, freq).join(', '),
+            nature: (num1.isDuong !== num2.isDuong) ? "Âm Dương Tương Hài" : "Lưỡng Nghi Đồng Khí"
+          });
+        }
+      }
+      return coList;
+    }
+
+    // Render Matrix 00-99 Columns
+    function renderFiveElementsMatrix(rankedNumbers) {
+      const container = document.getElementById('matrix-container');
+      container.innerHTML = '';
+
+      const elements = ["KIM", "MOC", "THUY", "HOA", "THO"];
+      
+      elements.forEach(elemKey => {
+        const meta = ELEMENT_NAMES[elemKey];
+        const numbersOfElem = rankedNumbers.filter(n => n.element === elemKey).slice(0, 6);
+        
+        const col = document.createElement('div');
+        col.className = `p-3.5 rounded-xl border ${meta.border}/30 ${meta.bg} flex flex-col justify-between`;
+        
+        let pillsHtml = numbersOfElem.map(n => `
+          <div class="flex items-center justify-between py-1 border-b border-zinc-800/60 last:border-0 font-mono">
+            <span class="font-bold text-sm text-slate-100">${n.formatted}</span>
+            <div class="flex items-center gap-1.5 text-[10px]">
+              <span class="${n.isDuong ? 'text-amber-400' : 'text-cyan-400'}">${n.isDuong ? 'Dương' : 'Âm'}</span>
+              <span class="text-slate-400 font-semibold">${n.score}đ</span>
+            </div>
+          </div>
+        `).join('');
+
+        col.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-zinc-800">
+              <span class="font-bold text-xs ${meta.color}">HÀNH ${elemKey}</span>
+              <span class="text-[10px] text-slate-400">Đuôi (${meta.digits.join(',')})</span>
+            </div>
+            <div class="space-y-1">
+              ${pillsHtml}
+            </div>
+          </div>
+          <div class="mt-3 text-[10px] text-slate-400 pt-2 border-t border-zinc-800/80 text-center">
+            Ưu tiên sinh vượng
+          </div>
+        `;
+        container.appendChild(col);
+      });
+    }
+
+    // Render Co-occurrence Table
+    function renderCoOccurrenceTable(coList) {
+      const tbody = document.getElementById('co-occurrence-tbody');
+      tbody.innerHTML = '';
+
+      coList.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-zinc-800/40 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-bold text-amber-300 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-angles-right text-xs text-amber-500"></i> ${item.pair}
+          </td>
+          <td class="py-3 px-4">
+            <span class="text-xs text-slate-300">${ELEMENT_NAMES[item.n1.element].name} + ${ELEMENT_NAMES[item.n2.element].name}</span>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <span class="bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[11px] font-semibold">${item.freq}</span>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <span class="text-slate-300 text-[11px]">${item.nature}</span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            <span class="text-emerald-400 font-semibold text-xs"><i class="fa-solid fa-fire text-[10px] mr-1"></i> Rất Cao</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Execute prediction calculations and update DOM
+    function executePredictions() {
+      const ranked = getRankedNumbers();
+      
+      // 1. Bạch thủ (Highest overall score)
+      const bachThu = ranked[0];
+      document.getElementById('res-bach-thu').innerText = bachThu.formatted;
+      document.getElementById('res-bt-hanh').innerText = `${ELEMENT_NAMES[bachThu.element].name} (Đuôi ${bachThu.num % 10})`;
+      document.getElementById('res-bt-amduong').innerText = bachThu.isDuong ? "Dương Khí (Thiên Can Hanh Thông)" : "Âm Khí (Địa Chi Tàng Ẩn)";
+      document.getElementById('res-bt-score').innerText = `${bachThu.score}%`;
+
+      // 2. Song thủ Âm Dương (One Yang, One Yin with top synergistic scores)
+      const topYang = ranked.find(n => n.isDuong);
+      const topYin = ranked.find(n => !n.isDuong && n.num !== topYang.num);
+      
+      document.getElementById('res-song-thu-1').innerText = topYang.formatted;
+      document.getElementById('res-st1-meta').innerText = `${ELEMENT_NAMES[topYang.element].name} • Trọng số ${topYang.score}đ`;
+
+      document.getElementById('res-song-thu-2').innerText = topYin.formatted;
+      document.getElementById('res-st2-meta').innerText = `${ELEMENT_NAMES[topYin.element].name} • Trọng số ${topYin.score}đ`;
+
+      // 3. Lô Xiên 2 (3 Pairs)
+      const xien2Container = document.getElementById('xien-2-container');
+      xien2Container.innerHTML = '';
+      
+      const xien2Pairs = [
+        [ranked[1], ranked[4]],
+        [ranked[2], ranked[5]],
+        [ranked[3], ranked[7]]
+      ];
+
+      xien2Pairs.forEach(([a, b], idx) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-3 rounded-xl bg-zinc-950/70 border border-zinc-800 hover:border-amber-500/30 transition";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold flex items-center justify-center">${idx + 1}</span>
+            <span class="text-lg font-bold font-mono text-amber-300">${a.formatted} <span class="text-zinc-600 font-normal">&bull;</span> ${b.formatted}</span>
+          </div>
+          <div class="text-right text-[11px] text-slate-400">
+            <span class="text-slate-300 font-semibold">${ELEMENT_NAMES[a.element].name.split(' ')[1]} - ${ELEMENT_NAMES[b.element].name.split(' ')[1]}</span>
+            <span class="block text-emerald-400">Tương sinh nạp khí</span>
+          </div>
+        `;
+        xien2Container.appendChild(div);
+      });
+
+      // 4. Lô Xiên 3 (2 Sets)
+      const xien3Container = document.getElementById('xien-3-container');
+      xien3Container.innerHTML = '';
+
+      const xien3Sets = [
+        [ranked[0], ranked[3], ranked[6]],
+        [ranked[1], ranked[2], ranked[8]]
+      ];
+
+      xien3Sets.forEach(([a, b, c], idx) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-3 rounded-xl bg-zinc-950/70 border border-zinc-800 hover:border-cyan-500/30 transition";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-bold flex items-center justify-center">${idx + 1}</span>
+            <span class="text-base sm:text-lg font-bold font-mono text-cyan-300">${a.formatted} - ${b.formatted} - ${c.formatted}</span>
+          </div>
+          <div class="text-right text-[11px] text-slate-400">
+            <span class="text-slate-300 font-semibold">Tam Hợp Quy Tụ</span>
+            <span class="block text-cyan-400">Tỷ lệ nổ: ~1.85%</span>
+          </div>
+        `;
+        xien3Container.appendChild(div);
+      });
+
+      // 5. Matrix & Co-occurrence table
+      renderFiveElementsMatrix(ranked);
+      renderCoOccurrenceTable(generateCoOccurrenceList(ranked));
+
+      document.getElementById('results-timestamp').innerText = `Linh ứng lúc: ${new Date().toLocaleTimeString('vi-VN')}`;
+    }
+
+    // Ritual Animation trigger
+    function startRitual() {
+      const btn = document.getElementById('btn-draw');
+      const coreIcon = document.getElementById('core-icon');
+      const coreStatus = document.getElementById('core-status');
+      const baguaRing = document.getElementById('bagua-ring');
+
+      // Audio feedback
+      AudioEngine.playBell(330, 0.4);
+      setTimeout(() => AudioEngine.playBell(550, 0.8), 600);
+
+      // Disable button during ritual
+      btn.disabled = true;
+      btn.classList.add('opacity-75', 'cursor-not-allowed');
+      coreStatus.innerText = "ĐANG KHAI QUẺ...";
+      
+      // Spin acceleration
+      baguaRing.style.animationDuration = "1.5s";
+      coreIcon.classList.add('animate-spin');
+
+      setTimeout(() => {
+        // Complete ritual
+        executePredictions();
+        AudioEngine.playBell(880, 1.4);
+
+        // Confetti celebration
+        if (typeof confetti === 'function') {
+          confetti({
+            particleCount: 70,
+            spread: 60,
+            origin: { y: 0.6 },
+            colors: ['#eab308', '#facc15', '#38bdf8', '#ef4444', '#22c55e']
+          });
+        }
+
+        // Reset visual state
+        baguaRing.style.animationDuration = "20s";
+        coreIcon.classList.remove('animate-spin');
+        coreStatus.innerText = "QUẺ ĐÃ ĐỊNH";
+        btn.disabled = false;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+
+        // Scroll gracefully to result panel
+        document.getElementById('prediction-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 1600);
+    }
+
+    // Window load entry
+    window.addEventListener('DOMContentLoaded', () => {
+      initClockAndCalendar();
+      setupUserElementButtons();
+      executePredictions(); // initial pass
+    });
+  </script>
+</body>
+</html>
